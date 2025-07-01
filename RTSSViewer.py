@@ -1,8 +1,8 @@
-from RTSSViewerFunctions_v5 import RTSSViewerBase
-from RTSSViewerFunctions_v5 import Function_Balance_Control
-from RTSSViewerFunctions_v5 import ImageToneCorrection #CT画像の階調機能
-from RTSSViewerFunctions_v5 import ImageSlideShow #スライドショー機能
-from RTSSViewerFunctions_v5 import ROISelecter #ROI一覧表示＆選択
+from RTSSViewerFunctions_v6 import RTSSViewerBase
+from RTSSViewerFunctions_v6 import Function_Balance_Control
+from RTSSViewerFunctions_v6 import ImageToneCorrection #CT画像の階調機能
+from RTSSViewerFunctions_v6 import ImageSlideShow #スライドショー機能
+from RTSSViewerFunctions_v6 import ROISelecter #ROI一覧表示＆選択
 
 
 import argparse
