@@ -15,6 +15,8 @@ class RTSSViewerBase:
         self.ctvolume=CTVolume(args.CTdirpath)
         #RTSSfileの読み込み
         self.rtss=RTSS(args.RTSSfilepath,self.ctvolume.i2p,self.ctvolume.p2i)
+        #PAX抽出
+        pax=args.CTdirpath.split('/')[-2]
         self.row_counter=0
         #パスも一応保存する
         self.CTdirpath=args.CTdirpath
@@ -24,7 +26,7 @@ class RTSSViewerBase:
         height_ratios=np.ones(ax_rows)*0.3
         height_ratios[0]=30
         self.gs=gridspec.GridSpec(ax_rows,volume_num,height_ratios=height_ratios,hspace=0.01,wspace=0.05,top=0.97,bottom=0.01,right=0.99,left=0.01)
-        self.fig=plt.figure(num="RTSSviewer",figsize=(7,7))
+        self.fig=plt.figure(num=f"RTSSviewer [ {pax} ]",figsize=(7,7))
         mngr=plt.get_current_fig_manager()
         volume_n=volume_num-1
         self.img_ax=self.fig.add_subplot(self.gs[self.row_counter,volume_n])
@@ -56,7 +58,7 @@ class RTSSViewerBase:
             path=self.rtss.get(0,structure)
             ec=self.rtss.contours[structure]["ec"]
             fc=self.rtss.contours[structure]["fc"]
-            self.rtss.contours[structure]["pathpatch"]=self.img_ax.add_patch(patches.PathPatch(path,ec=ec,fc=fc,lw=1))
+            self.rtss.contours[structure]["pathpatch"]=self.img_ax.add_patch(patches.PathPatch(path,ec=ec,fc=fc,lw=0.7))
             self.rtss.contours[structure]["pathpatch"].set(visible=False)
         #print(type(self.patch_dict[structure]))
         #pathpatchにはset_pathがあるらしい
@@ -342,18 +344,24 @@ class ROISelecter:
     def space_pressed_event(self,event):
         if event.key==" ":
             #現在のチェック状況を確認
+            """
             All_Checked=True
             for ri in self.ROIs_Info.values():
                 if not ri["pre_status"]:#チェックされていなければ
                     All_Checked=False
                     break
-            #All_CheckedがTrueならリセットモード→Falseをセット
-            #All_CheckedがFalseなら全選択モード→Trueをセット
+            """
+            All_Selected=(len(self.ROIs_Info)==self.Selected_ROI_counter["value"])
+
+            #All_SelectedがTrueならリセットモード→Falseをセット
+            #All_SelectedがFalseなら全選択モード→Trueをセット
+            #つまり、not All_Selectedをセットすればよい
+            #状態が異なるROIだけセットする　→　pre_status!=(not All_Selected) →　pre_status==All_Selected
             for ri in self.ROIs_Info.values():
                 i,j=ri["index"]
                 pre_status=ri["pre_status"]
-                if pre_status==All_Checked:
-                    self.CheckButton_list[j].set_active(i,(not All_Checked))
+                if pre_status==All_Selected:
+                    self.CheckButton_list[j].set_active(i,(not All_Selected))
         
     def close(self,event):
         #選択したROIの情報を保存して閉じる
@@ -362,7 +370,7 @@ class ROISelecter:
         with open(save_filepath,"w") as f:
             for ROIName,ri in self.ROIs_Info.items():
                 if ri["pre_status"]:
-                    text=f"{ROIName}, {', '.join([str(v) for v in self.rtss.get_Range(ROIName)])}"
-                    print(text)
+                    text=f"{ROIName}, {', '.join([str(v) for v in self.rtss.get_Range(ROIName)])}\n"
+                    print(text,end="")
                     f.write(f"{text}")
         print(f"----------------------\n{self.Selected_ROI_counter["value"]} 種のROIを {save_filepath} に保存")
