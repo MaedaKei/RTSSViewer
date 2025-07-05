@@ -1,8 +1,9 @@
-from RTSSViewerFunctions_v7 import RTSSViewerBase
-from RTSSViewerFunctions_v7 import Function_Balance_Control
-from RTSSViewerFunctions_v7 import ImageToneCorrection #CT画像の階調機能
-from RTSSViewerFunctions_v7 import ImageSlideShow #スライドショー機能
-from RTSSViewerFunctions_v7 import ROISelecter #ROI一覧表示＆選択
+from RTSSViewerFunctions_v8 import RTSSViewerBase
+from RTSSViewerFunctions_v8 import Function_Balance_Control
+from RTSSViewerFunctions_v8 import ImageToneCorrection #CT画像の階調機能
+from RTSSViewerFunctions_v8 import ImageSlideShow #スライドショー機能
+from RTSSViewerFunctions_v8 import ImageZoomPan
+from RTSSViewerFunctions_v8 import ROISelecter #ROI一覧表示＆選択
 
 
 import argparse
@@ -26,6 +27,7 @@ def RTSSViewer(args):
     fbc=Function_Balance_Control(base)
     imagetonecorrection=ImageToneCorrection(base,fbc)
     imageslideshow=ImageSlideShow(base,fbc)
+    imagezoompan=ImageZoomPan(base,fbc)
     roiselecter=ROISelecter(base,fbc)
     base.show()
 if __name__=="__main__":
