@@ -35,8 +35,10 @@ class CTVolume:
         ctvolume=np.array(ctvolume)
         #ヒストグラム用の解析&セグメンテーションか判別
         pixel_unique,pixel_hist=np.unique(ctvolume,return_counts=True)
-        pixel_hist[np.argmax(pixel_hist)]=0
-        hist=[pixel_unique,(pixel_hist+10000)**(1/3)]
+        #pixel_hist[np.argmax(pixel_hist)]=0
+        pixel_hist=np.log10(pixel_hist+1000)
+        hist_min=np.min(pixel_hist)
+        hist=[pixel_unique,pixel_hist-hist_min]
         pixel_range=pixel_unique[-1]-pixel_unique[0]+1
         if len(pixel_unique)<=pixel_range and pixel_range<=MASK_COLOR_LIMIT:
             attribute="MASK"
@@ -62,8 +64,12 @@ class CTVolume:
         self.X_range=(x_min,x_max)
         self.Y_range=(y_min,y_max)
         self.Z_range=(z_min,z_max)
-        self.vmin=hist[0][0]
-        self.vmax=hist[0][-1]
+        #ヒストグラム表示用
+        self.hist_x_min=hist[0][0]
+        self.hist_x_max=hist[0][-1]
+        sorted_y_hist=sorted(hist[1])
+        self.hist_y_min=sorted_y_hist[0]
+        self.hist_y_max=sorted_y_hist[-1]
         print("CT読み込み完了")
     def get(self,index):
         return self.ctvolume[index]
