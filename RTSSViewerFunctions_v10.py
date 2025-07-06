@@ -64,6 +64,32 @@ class RTSSViewerBase:
             fc=self.rtss.contours[structure]["fc"]
             self.rtss.contours[structure]["pathpatch"]=self.img_ax.add_patch(patches.PathPatch(path,ec=ec,fc=fc,lw=0.7))
             self.rtss.contours[structure]["pathpatch"].set(visible=False)
+        
+        #CSVファイルを読み込んでROIのチェックの初期値を設定する
+        if args.CheckedROIsCSVfile:
+            import csv
+            print("=========== ROI Check initialize ===========")
+            print(f"target CSV file : {args.CheckedROIsCSVfile}")
+            try:
+                with open(args.CheckedROIsCSVfile,"r") as f:
+                    loaded_count=0
+                    included_count=0
+                    reader=csv.reader(f)
+                    for row in reader:
+                        loaded_count+=1
+                        checkedROI=row[0]
+                        included_in_contours=(checkedROI in self.rtss.contours)
+                        if included_in_contours:
+                            self.rtss.contours[checkedROI]["pathpatch"].set(visible=True)
+                            included_count+=1
+                        print(f"{loaded_count:3}. {checkedROI:25} [ {'included' if included_in_contours else 'Not founded'} ]")
+                    print("--------------------------------------------")
+                    print(f"{included_count} ROIs is included.\n{loaded_count-included_count} ROIs is not founded.")
+            except FileNotFoundError as e:
+                print(e)
+            print("============================================")
+
+
         #print(type(self.patch_dict[structure]))
         #pathpatchにはset_pathがあるらしい
         
@@ -135,7 +161,7 @@ class ImageToneCorrection:
         #まずは何段階＝画素値の整数部分が最大何桁か算出する
         self.step_level=math.floor(math.log(self.ctvolume.hist_x_max,10))+1
         self.range_step_table=[10**i for i in range(self.step_level)]
-        print(self.range_step_table)
+        #print(self.range_step_table)
         self.range_step_threshold=self.ctvolume.hist_y_max/self.step_level
 
         self.center=None
@@ -308,9 +334,9 @@ class ImageSlideShow:
     
     def slicer_scroll_event(self,event):
         if self.Function_Balance_Control.ImageSlideShow_FLAG:
-            if event.button=="down":
+            if event.button=="up":
                 change_value=-1
-            elif event.button=="up":
+            elif event.button=="down":
                 change_value=1
             #この機能ではグローバルなし
             self.slicer.set_val((self.slicer.val+change_value)%self.slicer_length)
@@ -506,6 +532,7 @@ class ROISelecter:
             sn=0
             i=0#行(0~)
             j=0#列(0~)
+            visiblecounter=0
             while sn<ROI_kinds:
                 structure_name=key_list[sn]
                 contour=self.rtss.contours[structure_name]
@@ -517,6 +544,7 @@ class ROISelecter:
                 #self.ROIs_Info[structure_name]={"index":(i,j),"pre_status":visible}
                 self.ROIs_Info[structure_name]["index"]=(i,j)
                 self.ROIs_Info[structure_name]["pre_status"]=visible
+                visiblecounter+=visible
                 sn+=1
                 i+=1
                 if i==rows_num_list[j]:
@@ -537,6 +565,7 @@ class ROISelecter:
                     i=0
                     j+=1
             #最後のaxにCounterタイトルをセット
+            self.Selected_ROI_counter['value']=visiblecounter
             self.Selected_ROI_counter["component"]=ax.set_title(f"Selecting : {self.Selected_ROI_counter['value']}",fontdict={'fontsize':10})
             #主にリセット用
             #spaceキーによる一括選択機能

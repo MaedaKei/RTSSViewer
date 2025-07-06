@@ -12,6 +12,7 @@ def RTSSViewArguments(args_list=None):
     parser=argparse.ArgumentParser()
     parser.add_argument("CTdirpath",type=str,help="CTvolumeがあるディレクトリパス")
     parser.add_argument("RTSSfilepath",type=str,help="RTSSfileのパス")
+    parser.add_argument("--CheckedROIsCSVfile","-CRcsv",type=str,default=None,help="このプログラムで保存したCSVファイルを読み込んでROIのチェックの初期値を設定できる")
     parser.add_argument("--CT_gray_range","-cgr",type=int,nargs=2,default=[-180,180],help="CT画像の画素値の範囲の初期値を設定できる(起動後も変更可能)")
     
     args=parser.parse_args(args_list)
