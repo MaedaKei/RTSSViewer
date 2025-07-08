@@ -24,13 +24,13 @@ class RTSSViewerBase:
         #パスも一応保存する
         self.CTdirpath=args.CTdirpath
         self.RTSSfilepath=args.RTSSfilepath
+        self.csv_output=args.csv_output
         """CT画像の表示"""
         volume_num=1
         height_ratios=np.ones(ax_rows)*0.3
         height_ratios[0]=30
         self.gs=gridspec.GridSpec(ax_rows,volume_num,height_ratios=height_ratios,hspace=0.01,wspace=0.05,top=0.97,bottom=0.01,right=0.99,left=0.01)
         self.fig=plt.figure(num=f"RTSSviewer [ {pax} ]",figsize=(7,7))
-        mngr=plt.get_current_fig_manager()
         volume_n=volume_num-1
         self.img_ax=self.fig.add_subplot(self.gs[self.row_counter,volume_n])
         self.row_counter+=1
@@ -66,12 +66,12 @@ class RTSSViewerBase:
             self.rtss.contours[structure]["pathpatch"].set(visible=False)
         
         #CSVファイルを読み込んでROIのチェックの初期値を設定する
-        if os.path.exists(args.CheckedROIsCSVfile):
+        if os.path.exists(self.csv_output):
             import csv
             print("=========== ROI Check initialize ===========")
-            print(f"target CSV file : {args.CheckedROIsCSVfile}")
+            print(f"target CSV file : {self.csv_output}")
             
-            with open(args.CheckedROIsCSVfile,"r") as f:
+            with open(self.csv_output,"r") as f:
                 loaded_count=0
                 included_count=0
                 reader=csv.reader(f)
@@ -339,9 +339,9 @@ class ImageSlideShow:
     
     def slicer_scroll_event(self,event):
         if self.Function_Balance_Control.ImageSlideShow_FLAG:
-            if event.button=="up":
+            if event.button=="down":
                 change_value=-1
-            elif event.button=="down":
+            elif event.button=="up":
                 change_value=1
             #この機能ではグローバルなし
             self.slicer.set_val((self.slicer.val+change_value)%self.slicer_length)
@@ -502,7 +502,7 @@ class ROISelecter:
         self.img_table=base.img_table
         self.Function_Balance_Control=Function_Balance_Control
 
-        self.output_path=os.path.dirname(base.RTSSfilepath)
+        self.csv_output=base.csv_output
         self.fig.canvas.mpl_connect("button_press_event",self.ROIselecter_activate_event)
         key_visible_dict={key:contour["pathpatch"].get_visible() for key,contour in self.rtss.contours.items()}
         #ROI_kinds=len(self.key_list)
@@ -647,12 +647,11 @@ class ROISelecter:
         
     def close(self,event):
         #選択したROIの情報を保存して閉じる
-        save_filepath=os.path.join(self.output_path,"CheckedROINames.csv")
         print(f"\n----------------------")
-        with open(save_filepath,"w") as f:
+        with open(self.csv_output,"w") as f:
             for ROIName,ri in self.ROIs_Info.items():
                 if ri["pre_status"]:
                     text=f"{ROIName}, {', '.join([str(v) for v in self.rtss.get_Range(ROIName)])}\n"
                     print(text,end="")
                     f.write(f"{text}")
-        print(f"----------------------\n{self.Selected_ROI_counter['value']} 種のROIを {save_filepath} に保存")
+        print(f"----------------------\n{self.Selected_ROI_counter['value']} 種のROIを {self.csv_output} に保存")
