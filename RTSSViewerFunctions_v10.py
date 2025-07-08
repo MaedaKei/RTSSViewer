@@ -66,27 +66,25 @@ class RTSSViewerBase:
             self.rtss.contours[structure]["pathpatch"].set(visible=False)
         
         #CSVファイルを読み込んでROIのチェックの初期値を設定する
-        if args.CheckedROIsCSVfile:
+        if os.path.exists(args.CheckedROIsCSVfile):
             import csv
             print("=========== ROI Check initialize ===========")
             print(f"target CSV file : {args.CheckedROIsCSVfile}")
-            try:
-                with open(args.CheckedROIsCSVfile,"r") as f:
-                    loaded_count=0
-                    included_count=0
-                    reader=csv.reader(f)
-                    for row in reader:
-                        loaded_count+=1
-                        checkedROI=row[0]
-                        included_in_contours=(checkedROI in self.rtss.contours)
-                        if included_in_contours:
-                            self.rtss.contours[checkedROI]["pathpatch"].set(visible=True)
-                            included_count+=1
-                        print(f"{loaded_count:3}. {checkedROI:25} [ {'included' if included_in_contours else 'Not founded'} ]")
-                    print("--------------------------------------------")
-                    print(f"{included_count} ROIs is included.\n{loaded_count-included_count} ROIs is not founded.")
-            except FileNotFoundError as e:
-                print(e)
+            
+            with open(args.CheckedROIsCSVfile,"r") as f:
+                loaded_count=0
+                included_count=0
+                reader=csv.reader(f)
+                for row in reader:
+                    loaded_count+=1
+                    checkedROI=row[0]
+                    included_in_contours=(checkedROI in self.rtss.contours)
+                    if included_in_contours:
+                        self.rtss.contours[checkedROI]["pathpatch"].set(visible=True)
+                        included_count+=1
+                    print(f"{loaded_count:3}. {checkedROI:25} [ {'included' if included_in_contours else 'Not founded'} ]")
+                print("--------------------------------------------")
+                print(f"{included_count} ROIs is included.\n{loaded_count-included_count} ROIs is not founded.")
             print("============================================")
 
 
