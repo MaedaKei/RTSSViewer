@@ -95,6 +95,7 @@ class RTSSViewerBase:
         plt.show()
 
 class Function_Balance_Control:
+    #メインウィンドウ用のバランスコントロール
     def __init__(self,base):
         self.fig=base.fig
         self.img_ax=base.img_ax
@@ -170,7 +171,7 @@ class ImageToneCorrection:
         if self.Function_Balance_Control.ImageToneCorrection_FLAG and event.button==3:
             hist=self.ctvolume.hist
             self.img_table=self.img_table
-            self.tone_window_fig=plt.figure(num=self.__class__.__name__,figsize=(5,4),clear=True)
+            self.tone_window_fig=plt.figure(num=self.__class__.__name__,figsize=(5,4),clear=True)            
             self.tone_window_gs=gridspec.GridSpec(1,1,left=0.05,right=0.95,top=0.9,bottom=0.1)
             hist_ax=self.tone_window_fig.add_subplot(self.tone_window_gs[0,0])
             hist_ax.plot(*hist,color="#000000")
@@ -178,10 +179,12 @@ class ImageToneCorrection:
             hist_ax.set_xlim(self.ctvolume.hist_x_min,self.ctvolume.hist_x_max)
             hist_ax.set_ylim(self.ctvolume.hist_y_min,self.ctvolume.hist_y_max)
             hist_ax.set_xticks([self.ctvolume.hist_x_min,self.ctvolume.hist_x_max])
+
             ydatalist=[self.range_step_threshold*(i+1) for i in range(self.step_level)]
             hist_ax.set_yticks(ydatalist)
             hist_ax.set_yticklabels(self.range_step_table,fontdict={'fontsize':5})
-            hist_ax.grid(axis='y',ydata=ydatalist)
+            hist_ax.grid(axis='y',linestyle='--')
+
             #現在の画素値範囲,元の画素値範囲
             current_lower,current_upper=self.img_table.norm.vmin,self.img_table.norm.vmax
             self.value_text=hist_ax.set_title(f"[ {current_lower:5.1f} ~ {current_upper:5.1f} ]")
@@ -220,14 +223,18 @@ class ImageToneCorrection:
         self.Check()
     
     def button_press(self,event):
-        self.pressed_button=event.button
-        self.x=event.xdata
-        self.Check()
+        #ImageToneCorrectionWindow内のクリックに反応させる
+        if self.in_axes:
+            self.pressed_button=event.button
+            self.x=event.xdata
+            self.Check()
     
     def button_release(self,event):
-        self.pressed_button=False
-        self.x=None
-        self.Check()
+        #ImageToneCorrectionWindow内のクリックに反応させる
+        if self.in_axes:
+            self.pressed_button=False
+            self.x=None
+            self.Check()
     
     def Check(self):
         if self.in_axes:
@@ -497,11 +504,12 @@ class ROISelecter:
 
         self.output_path=os.path.dirname(base.RTSSfilepath)
         self.fig.canvas.mpl_connect("button_press_event",self.ROIselecter_activate_event)
-        key_list=list(self.rtss.contours.keys())
+        key_visible_dict={key:contour["pathpatch"].get_visible() for key,contour in self.rtss.contours.items()}
         #ROI_kinds=len(self.key_list)
-        self.ROIName_maxlength=len(max(key_list,key=lambda x:len(x)))
+        self.ROIName_maxlength=len(max(key_visible_dict.keys(),key=lambda x:len(x)))
         #現在の予定では、ROIごとにindex, pre_status, evacuateの3つ
-        self.ROIs_Info={roiname:{"index":(0,0),"pre_status":False,"evacuated_status":False} for roiname in key_list}
+        #CSVを読み込ませてチェックの初期化が可能になったので、evacuate_statusはvisibleを見て決める
+        self.ROIs_Info={roiname:{"index":(0,0),"pre_status":False,"evacuated_status":initial_evacuate} for roiname,initial_evacuate in key_visible_dict.items()}
         self.Selected_ROI_counter={"value":0,"compornent":None}
         print(f"{self.__class__.__name__} Registerd !")
     
